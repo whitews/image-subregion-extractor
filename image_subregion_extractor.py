@@ -1,6 +1,6 @@
 import Tkinter
 import tkFileDialog
-import ImageTk
+from PIL import ImageTk
 import PIL.Image
 import os
 import re
@@ -103,7 +103,7 @@ class Application(Tkinter.Frame):
         self.canvas.bind("<ButtonRelease-2>", self.on_pan_button_release)
 
         # save our sub-region snippet
-        self.master.bind("<space>", self.extract_region)
+        self.master.bind("<Return>", self.extract_region)
 
         self.rect = None
 
