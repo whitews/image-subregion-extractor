@@ -1,9 +1,10 @@
-import Tkinter
-import tkFileDialog
+import tkinter
+from tkinter import filedialog
 from PIL import ImageTk
 import PIL.Image
 import os
 import re
+import cv2
 
 BACKGROUND_COLOR = '#ededed'
 
@@ -16,69 +17,69 @@ PAD_LARGE = 8
 PAD_EXTRA_LARGE = 14
 
 
-class Application(Tkinter.Frame):
+class Application(tkinter.Frame):
 
     def __init__(self, master):
 
-        Tkinter.Frame.__init__(self, master=master)
+        tkinter.Frame.__init__(self, master=master)
 
         self.image_name = None
         self.image_dir = None
 
         self.master.minsize(width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
 
-        file_chooser_frame = Tkinter.Frame(self.master, bg=BACKGROUND_COLOR)
+        file_chooser_frame = tkinter.Frame(self.master, bg=BACKGROUND_COLOR)
         file_chooser_frame.pack(
-            fill=Tkinter.X,
+            fill=tkinter.X,
             expand=False,
-            anchor=Tkinter.N,
+            anchor=tkinter.N,
             padx=PAD_MEDIUM,
             pady=PAD_MEDIUM
         )
 
-        file_chooser_button = Tkinter.Button(
+        file_chooser_button = tkinter.Button(
             file_chooser_frame,
             text='Choose Image File...',
             command=self.choose_files
         )
-        file_chooser_button.pack(side=Tkinter.LEFT)
+        file_chooser_button.pack(side=tkinter.LEFT)
 
-        self.snip_string = Tkinter.StringVar()
-        snip_label = Tkinter.Label(
+        self.snip_string = tkinter.StringVar()
+        snip_label = tkinter.Label(
             file_chooser_frame,
             text="Snip Label: ",
             bg=BACKGROUND_COLOR
         )
-        snip_label_entry = Tkinter.Entry(
+        snip_label_entry = tkinter.Entry(
             file_chooser_frame,
             textvariable=self.snip_string
         )
-        snip_label_entry.pack(side=Tkinter.RIGHT)
-        snip_label.pack(side=Tkinter.RIGHT)
+        snip_label_entry.pack(side=tkinter.RIGHT)
+        snip_label.pack(side=tkinter.RIGHT)
 
         # the canvas frame's contents will use grid b/c of the double
         # scrollbar (they don't look right using pack), but the canvas itself
         # will be packed in its frame
-        canvas_frame = Tkinter.Frame(self.master, bg=BACKGROUND_COLOR)
+        canvas_frame = tkinter.Frame(self.master, bg=BACKGROUND_COLOR)
         canvas_frame.grid_rowconfigure(0, weight=1)
         canvas_frame.grid_columnconfigure(0, weight=1)
         canvas_frame.pack(
-            fill=Tkinter.BOTH,
+            fill=tkinter.BOTH,
             expand=True,
-            anchor=Tkinter.N,
+            anchor=tkinter.N,
             padx=PAD_MEDIUM,
             pady=PAD_MEDIUM
         )
 
-        self.canvas = Tkinter.Canvas(canvas_frame, cursor="cross")
+        self.canvas = tkinter.Canvas(canvas_frame, cursor="cross")
 
-        self.scrollbar_v = Tkinter.Scrollbar(
+        self.scrollbar_v = tkinter.Scrollbar(
             canvas_frame,
-            orient=Tkinter.VERTICAL
+            orient=tkinter.VERTICAL
         )
-        self.scrollbar_h = Tkinter.Scrollbar(
+        self.scrollbar_h = tkinter.Scrollbar(
             canvas_frame,
-            orient=Tkinter.HORIZONTAL
+            orient=tkinter.HORIZONTAL
         )
         self.scrollbar_v.config(command=self.canvas.yview)
         self.scrollbar_h.config(command=self.canvas.xview)
@@ -89,10 +90,10 @@ class Application(Tkinter.Frame):
         self.canvas.grid(
             row=0,
             column=0,
-            sticky=Tkinter.N + Tkinter.S + Tkinter.E + Tkinter.W
+            sticky=tkinter.N + tkinter.S + tkinter.E + tkinter.W
         )
-        self.scrollbar_v.grid(row=0, column=1, sticky=Tkinter.N + Tkinter.S)
-        self.scrollbar_h.grid(row=1, column=0, sticky=Tkinter.E + Tkinter.W)
+        self.scrollbar_v.grid(row=0, column=1, sticky=tkinter.N + tkinter.S)
+        self.scrollbar_h.grid(row=1, column=0, sticky=tkinter.E + tkinter.W)
 
         # setup some button and key bindings
         self.canvas.bind("<ButtonPress-1>", self.on_draw_button_press)
@@ -179,11 +180,9 @@ class Application(Tkinter.Frame):
         output_filename = "".join(
             [
                 match.groups()[0],
-                '_<',
                 str(corners[0]),
                 ',',
-                str(corners[1]),
-                '>'
+                str(corners[1])
             ]
         )
         output_filename = ".".join([output_filename, match.groups()[1]])
@@ -196,17 +195,22 @@ class Application(Tkinter.Frame):
         self.canvas.delete(self.rect)
         self.rect = None
 
-        selected_file = tkFileDialog.askopenfile('r')
+        selected_file = filedialog.askopenfile('r')
 
-        self.image = PIL.Image.open(selected_file)
+        cv_img = cv2.imread(selected_file.name)
+
+        self.image = PIL.Image.fromarray(
+            cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB),
+            'RGB'
+        )
         height, width = self.image.size
         self.canvas.config(scrollregion=(0, 0, height, width))
         self.tk_image = ImageTk.PhotoImage(self.image)
-        self.canvas.create_image(0, 0, anchor=Tkinter.NW, image=self.tk_image)
+        self.canvas.create_image(0, 0, anchor=tkinter.NW, image=self.tk_image)
 
         self.image_name = os.path.basename(selected_file.name)
         self.image_dir = os.path.dirname(selected_file.name)
 
-root = Tkinter.Tk()
+root = tkinter.Tk()
 app = Application(root)
 root.mainloop()
