@@ -180,6 +180,7 @@ class Application(tkinter.Frame):
         output_filename = "".join(
             [
                 match.groups()[0],
+                '_',
                 str(corners[0]),
                 ',',
                 str(corners[1])
