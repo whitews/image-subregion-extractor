@@ -44,6 +44,13 @@ class Application(tkinter.Frame):
         )
         file_chooser_button.pack(side=tkinter.LEFT)
 
+        clear_regions_button = tkinter.Button(
+            file_chooser_frame,
+            text='Clear Regions',
+            command=self.clear_rectangles
+        )
+        clear_regions_button.pack(side=tkinter.RIGHT, anchor=tkinter.N)
+
         self.snip_string = tkinter.StringVar()
         snip_label = tkinter.Label(
             file_chooser_frame,
@@ -131,7 +138,7 @@ class Application(tkinter.Frame):
                 self.start_y,
                 self.start_x,
                 self.start_y,
-                outline='green',
+                outline='#00ff00',
                 width=2
             )
 
@@ -160,8 +167,16 @@ class Application(tkinter.Frame):
     def on_pan_button_release(self, event):
         self.canvas.config(cursor='cross')
 
+    def clear_rectangles(self):
+        self.canvas.delete("rect")
+        self.canvas.delete(self.rect)
+        self.rect = None
+
     # noinspection PyUnusedLocal
     def extract_region(self, event):
+        if self.rect is None:
+            return
+
         output_dir = "/".join(
             [
                 self.image_dir,
@@ -191,6 +206,19 @@ class Application(tkinter.Frame):
         output_file_path = "/".join([output_dir, output_filename])
 
         region.save(output_file_path)
+
+        self.canvas.create_rectangle(
+            corners[0],
+            corners[1],
+            corners[2],
+            corners[3],
+            outline='#ff1493',
+            width=2,
+            tag='rect'
+        )
+
+        self.canvas.delete(self.rect)
+        self.rect = None
 
     def choose_files(self):
         self.canvas.delete(self.rect)
